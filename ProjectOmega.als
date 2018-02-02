@@ -126,7 +126,11 @@ fact UserConstraints {
 fact SemesterConstraints {
 
 -- Todo alias deve estar relacionado a apenas um semestre
-	all s : Semester | one a : Alias | a in s.alias
+	all a : Alias | one s : Semester | a in s.alias
+
+-- Todo semestre deve ter um alias
+	all s : Semester | #(s.alias) = 1
+
 -- Todo semestre pode ter no mínimo 1 curso e no máximo 10 cursos
 	all s : Semester | #(s.courses) > 0 
 	all s : Semester | #(s.courses) < 2
@@ -152,9 +156,6 @@ fact CourseConstraints {
 -- Toda falta deve estar relacionada a apenas um curso
 	all a : AbsAllowed | one c : Course | a in c.abssences_allowed
 	all a : AbsCommitted | one c : Course | a in c.abssences_committed
-
--- O número de faltas não pode ser igual às faltas permitidas
---	all c : Course | #(c.abssences_committed) < #(c.abssences_allowed)
 
 -- Toda task deve estar relacionada a apenas um curso
 	all t : Task | one c : Course | t in c.tasks
@@ -205,9 +206,20 @@ fact TaskConstraints {
 	all t : Task | #(t.pomodoros) < 6
 }
 
+
+fact PomodoroConstraints {
+
+-- Toda descrição de pomodoro precisa estar relacionada a apenas um pomodoro
+	all d : PomodoroInfo | one p : Pomodoro | d in p.description
+
+-- Todo start e close de pomodoro precisa estar relacionado a apenas um pomodoro
+	all s : PStart | one p : Pomodoro | s in p.start
+	all c : PClose | one p : Pomodoro | c in p.close
+}
+
 -- Show
 pred show[]{ }
-run show for 20
+run show for 20 but exactly 1 Course, 1 Task, 1 Pomodoro, 1 Media, 2 Document
 
 	
 
