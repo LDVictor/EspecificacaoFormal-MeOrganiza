@@ -82,13 +82,14 @@ sig AbsCommitted {
 
 sig Task {
 	name: one Taskname,
-	description: one Description,
+	description: one TaskDescription,
 	start: one TStart,
 	close: one TClose,
 	pomodoros: set Pomodoro
 }
 
 sig Taskname {}
+sig TaskDescription {}
 sig TStart {}
 sig TClose {}
 
@@ -155,6 +156,25 @@ fact CourseConstraints {
 
 -- Cada curso pode ter no máximo 2 informações adicionais
 	all c : Course | #(c.aditionalInfos) < 3
+}
+
+fact TaskConstraints {
+
+-- Todo taskname deve estar relacionado a apenas um task
+	all n : Taskname | lone t : Task | n in t.name
+
+-- Toda taskdescription deve estar relacionado a apenas um task
+	all d : TaskDescription | lone t : Task | d in t.description
+
+-- Todo start task e close task deve estar relacionado a apenas um task
+	all s : TStart | lone t : Task | s in t.start
+	all c : TClose | lone t : Task | c in t.close
+
+-- Todos os pomodoros devem estar relaconados com apenas um task
+	all p : Pomodoro | lone t : Task | p in t.pomodoros
+
+-- Cada task pode ter no máximo 5 pomodoros
+	all t : Task | #(t.pomodoros) < 6
 }
 
 -- Show
