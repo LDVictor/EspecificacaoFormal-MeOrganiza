@@ -49,10 +49,19 @@ sig Course {
 	abssences_allowed: one AbsAllowed,
 	abssences_committed: one AbsCommitted,
 	tasks: set Task,
-	aditionalInfos: set AditionalInfo
+	aditionalInfos: set AditionalInfo,
+	media: set Media
 }
 
 sig Coursename {}
+
+sig Media {
+	photos: set Photo,
+	documents: set Document
+}
+
+sig Photo {}
+sig Document {}
 
 sig AditionalInfo {
 --	name_info: one Infoname,
@@ -116,6 +125,8 @@ fact UserConstraints {
 
 fact SemesterConstraints {
 
+-- Todo alias deve estar relacionado a apenas um semestre
+	all s : Semester | one a : Alias | a in s.alias
 -- Todo semestre pode ter no mínimo 1 curso e no máximo 10 cursos
 	all s : Semester | #(s.courses) > 0 
 	all s : Semester | #(s.courses) < 2
@@ -127,51 +138,68 @@ fact SemesterConstraints {
 fact CourseConstraints {
 
 -- Todo coursename deve estar relacionado a apenas um curso
-	all n : Coursename | lone c : Course | n in c.name
+	all n : Coursename | one c : Course | n in c.name
 
 -- Toda descrição deve estar relacionada a apenas um curso
-	all d : Description | lone c : Course | d in c.description
+	all d : Description | one c : Course | d in c.description
 
 -- Toda nota deve estar relacionada a apenas um curso
-	all g : Grade | lone c : Course | g in c.grades
+	all g : Grade | one c : Course | g in c.grades
 
 -- Cada curso deve ter exatamente 3 notas
 	all c : Course | #(c.grades) = 3
 
 -- Toda falta deve estar relacionada a apenas um curso
-	all a : AbsAllowed | lone c : Course | a in c.abssences_allowed
-	all a : AbsCommitted | lone c : Course | a in c.abssences_committed
+	all a : AbsAllowed | one c : Course | a in c.abssences_allowed
+	all a : AbsCommitted | one c : Course | a in c.abssences_committed
 
 -- O número de faltas não pode ser igual às faltas permitidas
 --	all c : Course | #(c.abssences_committed) < #(c.abssences_allowed)
 
 -- Toda task deve estar relacionada a apenas um curso
-	all t : Task | lone c : Course | t in c.tasks
+	all t : Task | one c : Course | t in c.tasks
 
 -- Cada curso pode ter no máximo 3 tasks
 	all c : Course | #(c.tasks) < 4
 
 -- Cada informação adicional deve estar relacionada a apenas um curso
-	all a : AditionalInfo | lone c : Course | a in c.aditionalInfos
+	all a : AditionalInfo | one c : Course | a in c.aditionalInfos
 
 -- Cada curso pode ter no máximo 2 informações adicionais
 	all c : Course | #(c.aditionalInfos) < 3
+
+-- Cada mídia deve estar relacionada a apenas um curso
+	all m : Media | one c : Course | m in c.media
+
+-- Cada curso pode ter no máximo 3 mídias
+	all c : Course | #(c.media) < 4
+}
+
+fact MediaConstraints {
+
+-- Cada foto e documento deve estar relacionada a apenas uma mídia
+	all p : Photo | one m : Media | p in m.photos
+	all d : Document | one m : Media | d in m.documents
+
+-- Cada mídia pode ter no máximo 5 fotos e 3 documentos
+	all m : Media | #(m.photos) < 6
+	all m : Media | #(m.documents) < 4
 }
 
 fact TaskConstraints {
 
 -- Todo taskname deve estar relacionado a apenas um task
-	all n : Taskname | lone t : Task | n in t.name
+	all n : Taskname | one t : Task | n in t.name
 
 -- Toda taskdescription deve estar relacionado a apenas um task
-	all d : TaskDescription | lone t : Task | d in t.description
+	all d : TaskDescription | one t : Task | d in t.description
 
 -- Todo start task e close task deve estar relacionado a apenas um task
-	all s : TStart | lone t : Task | s in t.start
-	all c : TClose | lone t : Task | c in t.close
+	all s : TStart | one t : Task | s in t.start
+	all c : TClose | one t : Task | c in t.close
 
 -- Todos os pomodoros devem estar relaconados com apenas um task
-	all p : Pomodoro | lone t : Task | p in t.pomodoros
+	all p : Pomodoro | one t : Task | p in t.pomodoros
 
 -- Cada task pode ter no máximo 5 pomodoros
 	all t : Task | #(t.pomodoros) < 6
