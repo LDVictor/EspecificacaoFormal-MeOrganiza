@@ -21,39 +21,43 @@ one sig ProjectOmega {
 }
 
 one sig User {
+	profile: one Profile,
+	semesters: set Semester
+}
+
+one sig Profile {
 	name: one Username,
 	email: one Email,
 	password: one Password,
-	cellphone: one Cellphone,
-	minimum_score: one MinimumScore,
-	semesters: set Semester
+	course: one Course
 }
 
 one sig Username {}
 one sig Email {}
 one sig Password {}
-one sig Cellphone {}
-one sig MinimumScore {}
+one sig Course {}
 
 sig Semester {
 	alias: one Alias,
-	courses: set Course
+	subjects: set Subject,
+	tasks: set Task,
+	isCurrent: one CurrentSemester
 }
 
 sig Alias {}
+sig CurrentSemester {}
 
-sig Course {
-	name: one Coursename,
+sig Subject {
+	name: one Subjectname,
 	description: one Description,
 	grades: set Grade,
 	abssences_allowed: one AbsAllowed,
 	abssences_committed: one AbsCommitted,
-	tasks: set Task,
 	aditionalInfos: set AditionalInfo,
-	media: set Media
+	media: one Media
 }
 
-sig Coursename {}
+sig Subjectname {}
 
 sig Media {
 	photos: set Photo,
@@ -90,27 +94,16 @@ sig AbsCommitted {
 --sig Datetime {}
 
 sig Task {
-	name: one Taskname,
+	name: one TaskName,
 	description: one TaskDescription,
-	start: one TStart,
-	close: one TClose,
-	pomodoros: set Pomodoro
+	date: one TaskDate,
+	subject: one TaskSubject
 }
 
-sig Taskname {}
+sig TaskName {}
 sig TaskDescription {}
-sig TStart {}
-sig TClose {}
-
-sig Pomodoro {
-	description: one PomodoroInfo,
-	start: one PStart,
-	close: one PClose
-}
-
-sig PStart {}
-sig PClose {}
-sig PomodoroInfo{}
+sig TaskDate {}
+sig TaskSubject {}
 
 -- Fatos e Restrições
 
@@ -131,49 +124,52 @@ fact SemesterConstraints {
 -- Todo semestre deve ter um alias
 	all s : Semester | #(s.alias) = 1
 
--- Todo semestre pode ter no mínimo 1 curso e no máximo 10 cursos
-	all s : Semester | #(s.courses) > 0 
-	all s : Semester | #(s.courses) < 2
+-- Todo semestre pode ter no mínimo 1 disciplina e no máximo 10 disciplinas
+	all s : Semester | #(s.subjects) > 0 
+	all s : Semester | #(s.subjects) < 11
 
--- Todo curso deve estar relacionado a apenas um semestre
-	all c : Course | one s : Semester | c in s.courses
+-- Toda disciplina deve estar relacionado a apenas um semestre
+	all c : Subject | one s : Semester | c in s.subjects
+
+-- Toda task deve estar relacionada a apenas um semestre
+	all t : Task | one s : Semester | t in s.tasks
+
+-- Cada semestre pode ter no máximo 3 tasks
+	all s : Semester | #(s.tasks) < 4
+
+-- Cada CurrentSemester deve estar relacionado a apenas um semestre
+	all c : CurrentSemester | one s : Semester | c in s.isCurrent
 }
 
-fact CourseConstraints {
+fact SubjectConstraints {
 
--- Todo coursename deve estar relacionado a apenas um curso
-	all n : Coursename | one c : Course | n in c.name
+-- Todo subjectname deve estar relacionado a apenas uma disciplina
+	all n : Subjectname | one s : Subject | n in s.name
 
--- Toda descrição deve estar relacionada a apenas um curso
-	all d : Description | one c : Course | d in c.description
+-- Toda descrição deve estar relacionada a apenas uma disciplina
+	all d : Description | one s : Subject | d in s.description
 
--- Toda nota deve estar relacionada a apenas um curso
-	all g : Grade | one c : Course | g in c.grades
+-- Toda nota deve estar relacionada a apenas uma disciplina
+	all g : Grade | one s : Subject | g in s.grades
 
--- Cada curso deve ter exatamente 3 notas
-	all c : Course | #(c.grades) = 3
+-- Cada disciplina deve ter exatamente 3 notas
+	all s : Subject | #(s.grades) = 3
 
--- Toda falta deve estar relacionada a apenas um curso
-	all a : AbsAllowed | one c : Course | a in c.abssences_allowed
-	all a : AbsCommitted | one c : Course | a in c.abssences_committed
+-- Toda falta deve estar relacionada a apenas uma disciplina
+	all a : AbsAllowed | one s : Subject | a in s.abssences_allowed
+	all a : AbsCommitted | one s : Subject | a in s.abssences_committed
 
--- Toda task deve estar relacionada a apenas um curso
-	all t : Task | one c : Course | t in c.tasks
+-- Cada informação adicional deve estar relacionada a apenas uma disciplina
+	all a : AditionalInfo | one s : Subject | a in s.aditionalInfos
 
--- Cada curso pode ter no máximo 3 tasks
-	all c : Course | #(c.tasks) < 4
+-- Cada disciplina pode ter no máximo 2 informações adicionais
+	all s : Subject | #(s.aditionalInfos) < 3
 
--- Cada informação adicional deve estar relacionada a apenas um curso
-	all a : AditionalInfo | one c : Course | a in c.aditionalInfos
+-- Cada mídia deve estar relacionada a apenas uma disciplina
+	all m : Media | one s : Subject | m in s.media
 
--- Cada curso pode ter no máximo 2 informações adicionais
-	all c : Course | #(c.aditionalInfos) < 3
-
--- Cada mídia deve estar relacionada a apenas um curso
-	all m : Media | one c : Course | m in c.media
-
--- Cada curso pode ter no máximo 3 mídias
-	all c : Course | #(c.media) < 4
+-- Cada disciplina tem uma mídia
+	all s : Subject | #(s.media) = 1
 }
 
 fact MediaConstraints {
@@ -190,36 +186,21 @@ fact MediaConstraints {
 fact TaskConstraints {
 
 -- Todo taskname deve estar relacionado a apenas um task
-	all n : Taskname | one t : Task | n in t.name
+	all n : TaskName | one t : Task | n in t.name
 
 -- Toda taskdescription deve estar relacionado a apenas um task
 	all d : TaskDescription | one t : Task | d in t.description
 
--- Todo start task e close task deve estar relacionado a apenas um task
-	all s : TStart | one t : Task | s in t.start
-	all c : TClose | one t : Task | c in t.close
+-- Toda taskdate deve estar relacionado a apenas um task
+	all d : TaskDate | one t : Task | d in t.date
 
--- Todos os pomodoros devem estar relaconados com apenas um task
-	all p : Pomodoro | one t : Task | p in t.pomodoros
-
--- Cada task pode ter no máximo 5 pomodoros
-	all t : Task | #(t.pomodoros) < 6
-}
-
-
-fact PomodoroConstraints {
-
--- Toda descrição de pomodoro precisa estar relacionada a apenas um pomodoro
-	all d : PomodoroInfo | one p : Pomodoro | d in p.description
-
--- Todo start e close de pomodoro precisa estar relacionado a apenas um pomodoro
-	all s : PStart | one p : Pomodoro | s in p.start
-	all c : PClose | one p : Pomodoro | c in p.close
+-- Toda tasksubject devem estar relaconados com apenas um task
+	all s : TaskSubject | one t : Task | s in t.subject
 }
 
 -- Show
 pred show[]{ }
-run show for 20 but exactly 1 Course, 1 Task, 1 Pomodoro, 1 Media, 2 Document
+run show for 20 but exactly 1 Course, 1 Task, 1 Media
 
 	
 
