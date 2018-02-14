@@ -186,8 +186,7 @@ fact TaskConstraints {
 
 -- Show
 pred show[]{ }
-run show for 20  but exactly 1 Semester, 1 Subject, 1 Media, 1 Task
-
+run show for 20
 	
 
 
