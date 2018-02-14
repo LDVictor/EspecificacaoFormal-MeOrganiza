@@ -1,4 +1,4 @@
--- Especificação Formal do Project Omega em Alloy
+-- Especificação Formal do MeOrganiza em Alloy
 
 -- Equipe: 
 -- Alice Fernandes Silva
@@ -12,11 +12,11 @@
 -- Thalyta Fabrine da Trindade
 -- Victor Emanuel Farias da Costa Borges
 
-module ProjectOmega 
+module MeOrganiza
 
 -- Assinaturas
 
-one sig ProjectOmega {
+one sig MeOrganiza {
 	user: one User
 }
 
@@ -68,30 +68,16 @@ sig Photo {}
 sig Document {}
 
 sig AditionalInfo {
---	name_info: one Infoname,
---	info: one Information
 }
 
---sig Infoname {}
 sig Description {}
---sig Information {}
 sig Grade {}
 
 sig AbsAllowed {
---	abssence: set Abssence
 }
 
 sig AbsCommitted {
---	abssence: set Abssence
 }
-
---sig Abssence {
---	time: one Datetime,
---	reason: one Reason
---}
-
---sig Reason {}
---sig Datetime {}
 
 sig Task {
 	name: one TaskName,
@@ -200,7 +186,7 @@ fact TaskConstraints {
 
 -- Show
 pred show[]{ }
-run show for 20 but exactly 1 Course, 1 Task, 1 Media
+run show for 20  but exactly 1 Semester, 1 Subject, 1 Media, 1 Task
 
 	
 
